@@ -20,179 +20,63 @@ public class Snail {
     }
 
 
-    public void move(Leaf leaf){
-        int highestFoodAmount = leaf.getResources()[x][y];
-        int tempX = x, tempY = y;
-        ArrayList<Position> possiblePosition = new ArrayList<>();
-        possiblePosition.add(new Position(x, y));
+    public synchronized void move(Leaf leaf){
 
-        if(x == 0){
-            if(y == 0){
-                for(int h = 0; h < 2; h++){
-                    for(int w = 0; w < 2; w++){
-                        if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                            highestFoodAmount = leaf.getResources()[h][w];
-                            tempX = h;
-                            tempY = w;
-                            compareToPossiblePositions(h, w, leaf, possiblePosition);
-                        }
-                    }
-                }
+        ArrayList<Position> possiblePosition = checkAdjacentBoxes(leaf);
+
+        if(!possiblePosition.isEmpty()) {
+            int sameFoodPlaces = 1;
+            int highestFoodAmount = possiblePosition.get(0).getFood();
+
+            for (int i = 0; i < possiblePosition.size() - 1; i++) {
+                if (possiblePosition.get(i).getFood() == highestFoodAmount && possiblePosition.get(i).getFood() == possiblePosition.get(i + 1).getFood()) sameFoodPlaces++;
             }
-            else if(y == leaf.getGivenWidth() - 1){
-                for(int h = 0; h < 2; h++){
-                    for(int w = leaf.getGivenWidth() - 1; w > leaf.getGivenWidth() - 3; w--){
-                        if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                            highestFoodAmount = leaf.getResources()[h][w];
-                            tempX = h;
-                            tempY = w;
-                            compareToPossiblePositions(h, w, leaf, possiblePosition);
-                        }
-                    }
-                }
-            }
-            else {
-                for(int h = 0; h < 2; h++){
-                    for(int w = y - 1; w < y + 2; w++){
-                        if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                            highestFoodAmount = leaf.getResources()[h][w];
-                            tempX = h;
-                            tempY = w;
-                            compareToPossiblePositions(h, w, leaf, possiblePosition);
-                        }
-                    }
-                }
+
+            if (sameFoodPlaces > 1) {
+                Random random = new Random();
+                int index = random.nextInt(sameFoodPlaces);
+                x = possiblePosition.get(index).getX();
+                y = possiblePosition.get(index).getY();
+            } else {
+                x = possiblePosition.get(0).getX();
+                y = possiblePosition.get(0).getY();
             }
         }
 
-        else if(x == leaf.getGivenHeight() - 1){
-            if(y == 0){
-                for(int h = leaf.getGivenHeight() - 1; h > leaf.getGivenHeight() - 3; h--){
-                    for(int w = 0; w < 2; w++){
-                        if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                            highestFoodAmount = leaf.getResources()[h][w];
-                            tempX = h;
-                            tempY = w;
-                            compareToPossiblePositions(h, w, leaf, possiblePosition);
-                        }
-                    }
-                }
-            }
-            else if(y == leaf.getGivenWidth() - 1){
-                for(int h = leaf.getGivenHeight() - 1; h > leaf.getGivenHeight() - 3; h--){
-                    for(int w = leaf.getGivenWidth() - 1; w > leaf.getGivenWidth() - 3; w--){
-                        if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                            highestFoodAmount = leaf.getResources()[h][w];
-                            tempX = h;
-                            tempY = w;
-                            compareToPossiblePositions(h, w, leaf, possiblePosition);
-                        }
-                    }
-                }
-            }
-            else {
-                for(int h = leaf.getGivenHeight() - 1; h > leaf.getGivenHeight() - 3; h--){
-                    for(int w = y - 1; w < y + 2; w++){
-                        if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                            highestFoodAmount = leaf.getResources()[h][w];
-                            tempX = h;
-                            tempY = w;
-                            compareToPossiblePositions(h, w, leaf, possiblePosition);
-                        }
-                    }
-                }
-            }
-        }
-
-        else if (y == 0){
-            for(int h = x; h < x + 2; h++){
-                for(int w = 0; w < 2; w++){
-                    if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                        highestFoodAmount = leaf.getResources()[h][w];
-                        tempX = h;
-                        tempY = w;
-                        compareToPossiblePositions(h, w, leaf, possiblePosition);
-                    }
-                }
-            }
-        }
-
-        else if (y == leaf.getGivenWidth() - 1){
-            for(int h = x; h < x + 2; h++){
-                for(int w = leaf.getGivenWidth() - 1; w > leaf.getGivenWidth() - 3; w--){
-                    if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                        highestFoodAmount = leaf.getResources()[h][w];
-                        tempX = h;
-                        tempY = w;
-                        compareToPossiblePositions(h, w, leaf, possiblePosition);
-                    }
-                }
-            }
-        }
-
-        else {
-            for(int h = x - 1; h < x + 2; h++){
-                for(int w = y - 1; w < y + 2; w++){
-                    if(leaf.getResources()[h][w] >= highestFoodAmount && canMove(leaf, h, w)){
-                        highestFoodAmount = leaf.getResources()[h][w];
-                        tempX = h;
-                        tempY = w;
-                        compareToPossiblePositions(h, w, leaf, possiblePosition);
-                    }
-                }
-            }
-        }
-
-        if(possiblePosition.size() > 1){
-            Random random = new Random();
-            int randomIndex = random.nextInt(possiblePosition.size());
-            tempX = possiblePosition.get(randomIndex).getX();
-            tempY = possiblePosition.get(randomIndex).getY();
-        }
-
-        leaf.getSnails().get(id).setX(tempX);
-        leaf.getSnails().get(id).setY(tempY);
-        x = tempX;
-        y = tempY;
-
+        System.out.println("Snail " + id + " decided to go to " + "x = " + x + ", y = " + y);
     }
 
-    public boolean canMove(Leaf leaf, int x, int y) {
-        if(x >= 0 && y >= 0 && x < leaf.getGivenHeight() && y < leaf.getGivenWidth()){
-            for(Snail snail : leaf.getSnails()){
-                if(snail.getX() == x && snail.getY() == y && snail.getId() != this.getId()){
-                    return false;
+    private synchronized ArrayList<Position> checkAdjacentBoxes(Leaf leaf){
+        ArrayList<Position> PossiblePositions = new ArrayList<>();
+        for(int i = x - 1; i <= x+1; i++){
+            for (int j = y - 1; j <= y+1; j++){
+                if(i >= 0 && i < leaf.getGivenHeight() && j >=0 && j < leaf.getGivenWidth()){
+                    Position position = new Position(i,j, leaf.getResources()[i][j]);
+                    if(leaf.isPositionFree(i, j, this)) PossiblePositions.add(position);
                 }
             }
-            return true;
         }
-        else return false;
-    }
 
-    private void compareToPossiblePositions(int h, int w, Leaf leaf, ArrayList<Position> possiblePosition){
-        if(leaf.getResources()[h][w] > leaf.getResources()[possiblePosition.get(0).getX()][possiblePosition.get(0).getY()]){
-            possiblePosition.clear();
-            possiblePosition.add(new Position(h, w));
+        if(PossiblePositions.size() > 1) {
+            for (int i = 0; i < PossiblePositions.size() - 1; i++) {
+                for (int j = 0; j < PossiblePositions.size() - 1; j++) {
+                    if (PossiblePositions.get(j).getFood() < PossiblePositions.get(j + 1).getFood()) {
+                        Position p = PossiblePositions.get(j);
+                        PossiblePositions.set(j, PossiblePositions.get(j + 1));
+                        PossiblePositions.set(j + 1, p);
+                    }
+                }
+            }
         }
+        return PossiblePositions ;
     }
 
     public int getX() {
         return x;
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
     public int getY() {
         return y;
     }
 
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getId() {
-        return id;
-    }
 }

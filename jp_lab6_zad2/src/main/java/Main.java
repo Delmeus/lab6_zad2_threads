@@ -1,8 +1,11 @@
+import javax.swing.*;
 import java.util.ArrayList;
+
+import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 public class Main implements Runnable {
 
-    private ArrayList<Thread> snailThreads = new ArrayList<>();
+    private final ArrayList<Thread> snailThreads = new ArrayList<>();
 
     //argumenty: wysokość, szerokość, liczba ślimaków
     public static void main(String[] args) {
@@ -17,13 +20,22 @@ public class Main implements Runnable {
             for(int i = 0; i < 3; i++) arguments[i] = 0;
         }
 
-        MyFrame frame = new MyFrame(arguments);
-        main.createResourcesThread(frame.leafPanel);
-        main.createSnailsThreads(arguments[2], frame.leafPanel);
+        if (main.ifArgsValid(arguments)) {
+            MyFrame frame = new MyFrame(arguments);
+            main.createResourcesThread(frame.getLeafPanel());
+            main.createSnailsThreads(arguments[2], frame.getLeafPanel());
+        }
+        else {
+            JFrame frame = new JFrame();
+            frame.setVisible(false);
+            frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+            JOptionPane.showMessageDialog(frame, "Niepoprawne argumenty!");
+            System.exit(0);
+        }
 
     }
 
-    private synchronized void createResourcesThread(Leaf leaf){
+    private void createResourcesThread(Leaf leaf){
         Thread thread = new Thread(() ->{
             while(true) {
                 try {
@@ -34,39 +46,50 @@ public class Main implements Runnable {
 
                 for(Thread thread1 : snailThreads) {
                     try {
-                        thread1.sleep(100);
+                        thread1.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                synchronized (this) {
+                    leaf.refreshResources();
+                    leaf.repaint();
+                    System.out.println("Refreshing");
+                }
 
-                leaf.refreshResources();
-                leaf.repaint();
             }
         });
         thread.start();
     }
 
-    private synchronized void createSnailsThreads(int numberOfSnails, Leaf leaf){
+    private void createSnailsThreads(int numberOfSnails, Leaf leaf){
 
         for(int i = 0; i < numberOfSnails; i++) {
 
             int currentId = i;
             Thread thread = new Thread(() -> {
                 while (Thread.currentThread() == snailThreads.get(currentId)) {
+
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         System.out.println(e.getMessage());
                     }
-                    leaf.getSnails().get(currentId).move(leaf);
-                    leaf.getSnails().get(currentId).eat(leaf);
-                    leaf.repaint();
+                    synchronized (snailThreads) {
+                        leaf.getSnails().get(currentId).move(leaf);
+                        leaf.getSnails().get(currentId).eat(leaf);
+                        leaf.refreshPositions();
+                        leaf.repaint();
+                    }
                 }
             });
             thread.start();
             snailThreads.add(thread);
         }
+    }
+
+    private boolean ifArgsValid(int[] args){
+        return args[0] > 0 && args[1] > 0 && args[2] > 0 && args[0] * args[1] > args[2];
     }
 
     @Override

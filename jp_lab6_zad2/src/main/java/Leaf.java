@@ -5,6 +5,8 @@ import java.util.Random;
 
 public class Leaf extends JPanel {
 
+    public Position[] snailsPositions;
+
     private final int height;
     private final int width;
 
@@ -25,6 +27,7 @@ public class Leaf extends JPanel {
             }
         }
 
+        snailsPositions = new Position[args[2]];
         createSnails(args[2]);
 
 
@@ -44,11 +47,6 @@ public class Leaf extends JPanel {
                 if(resources[h][w] == 0) g2d.setColor(Color.WHITE);
                 else g2d.setColor(new Color(5, 255 / resources[h][w], 5));
                 g2d.fillRect(w * 50, h * 50, 50, 50);
-//                if(snails[h][w] != 0){
-//                    g2d.setColor(Color.RED);
-//                    g2d.fillOval(w * 50, h * 50, 50, 50);
-//                }
-                //System.out.println("[h,w] = [" + h + "," + w + "]" + " = " + resources[h][w]);
             }
         }
         g2d.setColor(Color.RED);
@@ -60,14 +58,21 @@ public class Leaf extends JPanel {
         ArrayList<Position> positions = new ArrayList<>();
         for(int i = 0; i < numberOfSnails; i++){
             Position position = new Position(random.nextInt(height), random.nextInt(width));
-            if(!positions.contains(position)) {
+            if(canSpawnSnail(positions, position)) {
                 positions.add(position);
                 snails.add(new Snail(position.getX(), position.getY(), (random.nextInt(3) + 1) , i));
-                System.out.println(position.toString());
+                snailsPositions[i] = position;
+                System.out.println(position);
             }
             else i--;
         }
+    }
 
+    private boolean canSpawnSnail(ArrayList<Position> positions, Position position){
+        for (Position value : positions) {
+            if (value.getX() == position.getX() && value.getY() == position.getY()) return false;
+        }
+        return true;
     }
 
     public int[][] getResources() {
@@ -90,6 +95,19 @@ public class Leaf extends JPanel {
             for(int w = 0; w < width; w++){
                 if(resources[h][w] < 10) resources[h][w] += 1;
             }
+        }
+    }
+
+    public synchronized boolean isPositionFree(int x, int y, Snail snail){
+        for (int i = 0; i < snailsPositions.length; i++) {
+            if (snailsPositions[i].getX() == x && snailsPositions[i].getY() == y && snails.get(i) != snail) return false;
+        }
+        return true;
+    }
+
+    public synchronized void refreshPositions(){
+        for(int i = 0; i < snailsPositions.length; i++){
+            snailsPositions[i] = new Position(snails.get(i).getX(), snails.get(i).getY());
         }
     }
 

@@ -2,12 +2,11 @@ import javax.swing.*;
 
 public class MyFrame extends JFrame {
 
-    Leaf leafPanel;
-    JPanel mainPanel;
+    private final Leaf leafPanel;
 
     public MyFrame(int[] args){
 
-        mainPanel = new JPanel();
+        JPanel mainPanel = new JPanel();
         leafPanel = new Leaf(args);
 
         mainPanel.add(leafPanel);
